@@ -1,4 +1,4 @@
-# FretScaleWeb 🎸
+# FretScale-Web 🎸
 
 GithubPage: https://nyxover.github.io/FretScale-Web/
 
