@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0e17">
+  <meta name="description" content="Détecte les notes et accords joués à la guitare ou à la basse et les affiche sur un manche et un clavier, avec progressions d'accords diatoniques.">
+  <title>FretScaleWeb — Notes, accords & progressions 🎸</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span aria-hidden="true">🎸</span> FretScaleWeb</div>
+    <button id="micBtn" class="btn btn-primary" type="button">🎤 Activer le micro</button>
+  </header>
+
+  <main>
+  <div id="banner" class="banner hidden" role="status"></div>
+  <div class="cols">
+    <div class="col col-settings">
+      <section id="controlsPanel" class="panel" aria-labelledby="controlsTitle">
+      <h2 id="controlsTitle">Réglages</h2>
+      <div class="controls">
+        <label class="field">
+          <span>Tonique</span>
+          <input id="keyInput" list="noteList" value="C" maxlength="3" autocomplete="off" spellcheck="false" aria-label="Note racine (tonique)">
+          <datalist id="noteList">
+            <option value="C"></option><option value="C#"></option><option value="D"></option>
+            <option value="D#"></option><option value="E"></option><option value="F"></option>
+            <option value="F#"></option><option value="G"></option><option value="G#"></option>
+            <option value="A"></option><option value="A#"></option><option value="B"></option>
+            <option value="Db"></option><option value="Eb"></option><option value="Gb"></option>
+            <option value="Ab"></option><option value="Bb"></option>
+          </datalist>
+        </label>
+
+        <div class="field field-chips">
+          <span>Accès rapide</span>
+          <div id="noteChips" class="note-chips" role="group" aria-label="Choisir la tonique"></div>
+        </div>
+
+        <label class="field">
+          <span>Gamme</span>
+          <select id="scaleSelect" aria-label="Gamme majeure ou mineure">
+            <option value="major">Majeure</option>
+            <option value="minor">Mineure</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Progression</span>
+          <select id="progSelect" aria-label="Type de progression">
+            <option value="pop">Pop · I–V–vi–IV</option>
+            <option value="classic">Classique · I–IV–V–I</option>
+            <option value="jazz">Jazz · ii–V–I</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Longueur</span>
+          <input id="lengthInput" type="number" min="1" max="16" value="4" aria-label="Nombre d'accords">
+        </label>
+
+        <label class="field">
+          <span>Instrument</span>
+          <select id="instrumentSelect" aria-label="Guitare ou basse">
+            <option value="guitar">Guitare</option>
+            <option value="bass">Basse</option>
+          </select>
+        </label>
+
+        <div class="field field-buttons">
+          <button id="genBtn" class="btn" type="button">Générer progression</button>
+          <button id="playBtn" class="btn" type="button">▶ Écouter</button>
+        </div>
+
+        <label class="field">
+          <span>Affichage</span>
+          <button id="noobBtn" class="btn btn-toggle" type="button" aria-pressed="false">🤓 Mode super noob</button>
+        </label>
+      </div>
+    </section>
+    </div>
+    <div class="col col-main">
+      <section id="livePanel" class="panel" aria-labelledby="liveTitle">
+      <h2 id="liveTitle">Écoute en direct</h2>
+      <div class="live">
+        <div class="live-item">
+          <span class="live-label">Note jouée</span>
+          <strong id="liveNote" class="live-value">—</strong>
+        </div>
+        <div class="live-item">
+          <span class="live-label">Accord détecté</span>
+          <strong id="liveChord" class="live-value">—</strong>
+        </div>
+        <div class="live-item live-wide">
+          <span class="live-label">Stabilité du signal <span id="clarityTxt">0%</span></span>
+          <div class="meter"><div id="clarityBar" class="meter-fill"></div></div>
+        </div>
+      </div>
+      <p class="hint" id="micHint">Active le micro, joue une note ou un accord : le manche et le clavier s'allument en temps réel. Tu peux aussi taper les touches du piano pour tester.</p>
+    </section>
+      <section id="fretPanel" class="panel" aria-labelledby="fretTitle">
+      <h2 id="fretTitle">Manche <span id="fretSubtitle" class="subtitle">(guitare · 12 frettes)</span></h2>
+      <div class="fretboard-scroll">
+        <div id="fretboard" class="fretboard" role="group" aria-label="Manche : tape une case pour connaître la meilleure note à jouer"></div>
+      </div>
+      <p class="hint">💡 Tape une case du manche : l'app te dit si la note est un bon choix et te conseille la meilleure note voisine.</p>
+      <div id="fretAdvice" class="fret-advice" role="status">
+        <span class="advice-icon">👆</span>
+        <div><b>Aucune case sélectionnée.</b><br>Touche une frette pour voir le conseil.</div>
+      </div>
+    </section>
+      <section id="keysPanel" class="panel" aria-labelledby="keysTitle">
+      <h2 id="keysTitle">Clavier &amp; grille de tonalité</h2>
+      <div class="piano-wrap">
+        <div id="piano" class="piano" role="group" aria-label="Petit clavier de piano, touche pour écouter une note"></div>
+      </div>
+      <details class="grid-help" open>
+        <summary>À quoi sert cette grille ?</summary>
+        <p>C'est une <b>carte des notes</b> autour de la tonique : elle montre d'un coup d'œil quelles notes sont dans la gamme, dans l'accord joué, et quelle est la note sensible. Tu n'as <b>rien à jouer ici</b> — pour jouer, regarde la tablature ou le manche. <b>Tape une case</b> pour écouter la note et la voir s'allumer sur le manche.</p>
+        <p class="grid-legend">★ = milieu (tonique) &nbsp;·&nbsp; fond bleu = notes de la gamme &nbsp;·&nbsp; contour vert = notes de l'accord &nbsp;·&nbsp; contour rose = note sensible</p>
+      </details>
+      <div id="noteGrid" class="note-grid" role="group" aria-label="Carte de 40 notes : tape une case pour écouter la note"></div>
+    </section>
+    </div>
+    <div class="col col-side">
+      <section id="chordsPanel" class="panel" aria-labelledby="chordsTitle">
+      <h2 id="chordsTitle">Progression d'accords <span class="subtitle">(diatonique)</span></h2>
+      <details class="grid-help" open>
+        <summary>Comprendre la progression</summary>
+        <p><b>C'est quoi ?</b> Une suite d'accords construits <b>uniquement avec les notes de la gamme choisie</b>
+        (diatonique) : c'est pour ça qu'ils sonnent bien ensemble. Chaque ligne = un accord, avec son
+        <b>degré</b> (I, V, vi…), son nom et ses 3 notes.</p>
+        <p><b>Comment s'en servir ?</b> Choisis la tonique, la gamme, le type de progression et la longueur,
+        puis « Générer progression ». L'accord <b>V (rouge)</b> crée une tension qui appelle le retour à
+        <b>I (vert)</b>. « Écouter » joue la suite. Pour la jouer toi-même, ouvre le <b>mode super noob</b>
+        : chaque accord a sa tablature. Tu peux aussi cliquer sur un accord pour charger sa tab et son riff.</p>
+      </details>
+      <div id="chords" class="chords"></div>
+    </section>
+      <section id="riffPanel" class="panel" aria-labelledby="riffTitle">
+      <h2 id="riffTitle">Riff ASCII · 16 temps <span class="subtitle">(généré quand tu joues une note)</span></h2>
+      <div class="riff-controls">
+        <label class="field">
+          <span>Ambiance</span>
+          <select id="moodSelect" aria-label="Ambiance du riff">
+            <option value="calme">😌 Calme / ballade</option>
+            <option value="groove" selected>🕺 Groove / funk</option>
+            <option value="rock">🤘 Rock</option>
+            <option value="reggae">🌴 Reggae</option>
+            <option value="jazz">🎷 Jazz</option>
+            <option value="metal">💀 Métal</option>
+          </select>
+        </label>
+        <button id="riffBtn" class="btn" type="button">↻ Regénérer</button>
+      </div>
+      <pre id="riffTab" class="riff-tab" aria-live="polite"></pre>
+      <p class="hint" id="riffCaption">Joue une note (micro, piano, grille ou manche) : un riff de 16 temps est créé automatiquement. Les chiffres sont les cases à presser, <code>---</code> = silence.</p>
+    </section>
+      <section id="noobPanel" class="panel hidden" aria-labelledby="noobTitle">
+      <h2 id="noobTitle">Tablature <span class="subtitle">(mode super noob)</span></h2>
+      <div id="noobContent"></div>
+    </section>
+      <section id="theoryPanel" class="panel" aria-labelledby="theoryTitle">
+      <h2 id="theoryTitle">Comprendre en 30 secondes</h2>
+      <details class="theory-details" open>
+        <summary>Afficher les explications</summary>
+      <ul class="legend">
+        <li><b>Accord diatonique</b> : construit uniquement avec les notes de la gamme → les accords sonnent bien ensemble.</li>
+        <li><b>Dominante (V)</b> : l'accord qui crée une tension et appelle le retour à la tonique (I). En do majeur, Sol appelle Do.</li>
+        <li><b>Note sensible (7<sup>e</sup>)</b> : tire l'oreille vers la tonique (Si → Do). Elle est mise en évidence en rose.</li>
+        <li><b>Note cible / d'accord</b> : une note qui appartient à l'accord du moment → toujours stable. Elle est entourée en vert.</li>
+        <li><b>Note de passage</b> : note de liaison entre deux notes de la gamme ; elle est grisée sur la grille.</li>
+      </ul>
+      <div class="color-key">
+        <span><i class="sw sw-tonic"></i> Tonique</span>
+        <span><i class="sw sw-scale"></i> Notes de la gamme</span>
+        <span><i class="sw sw-chord"></i> Notes de l'accord</span>
+        <span><i class="sw sw-play"></i> Note jouée</span>
+        <span><i class="sw sw-lead"></i> Note sensible</span>
+      </div>
+      </details>
+    </section>
+    </div>
+  </div>
+</main>
+
+  <footer>
+    FretScaleWeb · fonctionne hors ligne · le micro demande <code>HTTPS</code> ou <code>localhost</code> sur mobile.
+  </footer>
+
+  <!-- Architecture MVC : Modèle → Vue → Contrôleur -->
+  <script src="js/model.js"></script>
+  <script src="js/view.js"></script>
+  <script src="js/controller.js"></script>
+</body>
+</html>
