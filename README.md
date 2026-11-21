@@ -1,5 +1,7 @@
 # FretScaleWeb 🎸
 
+GithubPage: https://nyxover.github.io/FretScale-Web/
+
 WebApp mobile qui **écoute** les notes/accords joués à la guitare ou à la basse
 (microphone) et affiche le résultat sur un **manche**, un **petit clavier de piano**
 et une **grille de tonalité 5 × 8**, avec des **progressions d'accords diatoniques**
